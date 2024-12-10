@@ -91,6 +91,7 @@ dependencies = [
  "buddy_system_allocator",
  "fdt",
  "lazy_static",
+ "lock_api",
  "log",
  "loongArch64",
  "numeric-enum-macro",

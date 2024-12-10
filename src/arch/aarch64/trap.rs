@@ -146,9 +146,8 @@ fn arch_handle_trap_el2(_regs: &mut GeneralRegisters) {
             println!("EL2 Exception: SMC64 call, ELR_EL2: {:#x?}", ELR_EL2.get());
         }
         Some(ESR_EL2::EC::Value::DataAbortCurrentEL) => {
-            loop {}
             println!(
-                "EL2 Exception: Data Abort, ELR_EL2: {:#x?}, FAR_EL2: {:#x?}",
+                "EL2 Exception: Data Abort, ELR_EL2: {:#x?}, ESR_EL2: {:#x?}",
                 elr, esr
             );
         }

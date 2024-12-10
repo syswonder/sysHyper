@@ -14,6 +14,7 @@
 #![feature(asm_const)]
 #![feature(naked_functions)] //  surpport naked function
 #![feature(core_panic)]
+#![feature(core_intrinsics)]
 // 支持内联汇编
 // #![deny(warnings, missing_docs)] // 将warnings作为error
 #[macro_use]
@@ -25,9 +26,11 @@ mod error;
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
+mod mutex;
 #[macro_use]
 mod logging;
 mod arch;
+mod config;
 mod consts;
 mod device;
 mod event;
@@ -37,22 +40,25 @@ mod panic;
 mod percpu;
 mod platform;
 mod zone;
-mod config;
 
 #[cfg(target_arch = "aarch64")]
 use crate::arch::mm::setup_parange;
 use crate::consts::MAX_CPU_NUM;
+use crate::device::uart::console_putchar;
 use arch::{cpu::cpu_start, entry::arch_entry};
 use config::root_zone_config;
-use zone::zone_create;
-use core::sync::atomic::{AtomicI32, AtomicU32, Ordering};
+use core::sync::atomic::{AtomicI32, AtomicU32, AtomicBool, Ordering};
 use percpu::PerCpu;
+use spin::lock_api::Mutex;
+use zone::zone_create;
 
 static INITED_CPUS: AtomicU32 = AtomicU32::new(0);
 static ENTERED_CPUS: AtomicU32 = AtomicU32::new(0);
 static INIT_EARLY_OK: AtomicU32 = AtomicU32::new(0);
 static INIT_LATE_OK: AtomicU32 = AtomicU32::new(0);
 static MASTER_CPU: AtomicI32 = AtomicI32::new(-1);
+
+static LOCK_TEST: Mutex<()> = Mutex::new(());
 
 pub fn clear_bss() {
     extern "C" {
@@ -132,11 +138,46 @@ fn wakeup_secondary_cpus(this_id: usize, host_dtb: usize) {
     }
 }
 
-fn rust_main(cpuid: usize, host_dtb: usize) {
-    arch::trap::install_trap_vector();
+#[no_mangle]
+#[inline]
+pub extern "C" fn uart_puts_c() {
+    console_putchar(b'1');
+    // let mut i = 0;
+    // while (i < 10) {
+    //     console_putchar(b'1');
+    //     i = i + 1;
+    // }
+}
 
+fn uart_puts_1() {
+    uart_puts("2");
+}
+
+#[inline]
+pub fn uart_puts(str: &str) {
+    for &byte in str.as_bytes() {
+        console_putchar(byte);
+    }
+}
+fn mycas() {
+    let mut dst: u32 = 0;
+    unsafe { core::intrinsics::atomic_cxchg_acquire_relaxed(dst as *mut u32, 0, 1); }
+}
+
+
+fn test_lock() {
+    println!("lock test: start");
+    mycas();
+    println!("lock test: done");
+}
+fn rust_main(cpuid: usize, host_dtb: usize) {
+    // uart_puts_1();
+    test_lock();
+    uart_puts("hello hvisor");
+    // uart_puts_1();
+    arch::trap::install_trap_vector();
     let mut is_primary = false;
-    println!("Hello, HVISOR!");
+    // println!("Hello, HVISOR!");
     if MASTER_CPU.load(Ordering::Acquire) == -1 {
         MASTER_CPU.store(cpuid as i32, Ordering::Release);
         is_primary = true;
@@ -144,11 +185,10 @@ fn rust_main(cpuid: usize, host_dtb: usize) {
         clear_bss();
         memory::heap::init();
         memory::heap::test();
-        
     }
-
+    println!("3");
     let cpu = PerCpu::new(cpuid);
-
+    println!("4");
     println!(
         "Booting CPU {}: {:p} arch:{:p}, DTB: {:#x}",
         cpu.id, cpu as *const _, &cpu.arch_cpu as *const _, host_dtb

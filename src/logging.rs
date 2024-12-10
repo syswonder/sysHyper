@@ -1,11 +1,15 @@
 use core::fmt::{self, Write};
 
 use log::{self, Level, LevelFilter, Log, Metadata, Record};
+// use crate::mutex::{Hspinlock, HspinlockGuard};
+use alloc::string::String;
 use spin::Mutex;
 
 use crate::device::uart;
 
+// static PRINT_LOCK: Hspinlock<()> = Hspinlock::new(());
 static PRINT_LOCK: Mutex<()> = Mutex::new(());
+
 struct Stdout;
 
 impl Write for Stdout {
@@ -22,9 +26,19 @@ impl Write for Stdout {
         Ok(())
     }
 }
+// pub fn print(args: fmt::Arguments) {
+//     Stdout.write_str("try get lock");
+//     if let _locked = PRINT_LOCK.try_lock() {
+//         Stdout.write_str("get lock success");
+//         Stdout.write_fmt(args).unwrap();
+//     } else {
+//         Stdout.write_str("Failed to acquire lock for PRINT_LOCK.");
+//     }
+// }
+
 
 pub fn print(args: fmt::Arguments) {
-    let _locked = PRINT_LOCK.lock();
+    // let _locked = PRINT_LOCK.lock();
     Stdout.write_fmt(args).unwrap();
 }
 /// print without line breaks

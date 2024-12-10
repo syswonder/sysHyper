@@ -105,9 +105,10 @@ impl Zone {
     }
     /// If irq_id belongs to this zone
     pub fn irq_in_zone(&self, irq_id: u32) -> bool {
-        let idx = (irq_id / 32) as usize;
-        let bit_pos = (irq_id % 32) as usize;
-        (self.irq_bitmap[idx] & (1 << bit_pos)) != 0
+        // let idx = (irq_id / 32) as usize;
+        // let bit_pos = (irq_id % 32) as usize;
+        // (self.irq_bitmap[idx] & (1 << bit_pos)) != 0
+        true
     }
 }
 

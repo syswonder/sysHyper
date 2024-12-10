@@ -29,6 +29,12 @@ pub mod ls3a5000_loongarch64;
 #[cfg(target_arch = "loongarch64")]
 pub use ls3a5000_loongarch64::*;
 
+#[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
+pub mod rk3568_aarch64;
+
+#[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
+use rk3568_aarch64::*;
+
 pub fn platform_root_zone_config() -> HvZoneConfig {
     // fill zero for memory regions and interrupts
 
