@@ -1,10 +1,15 @@
 ENTRY(arch_entry)
-BASE_ADDRESS = 0x40480000;
+BASE_ADDRESS = 0x00280000;
 
 SECTIONS
 {
     . = BASE_ADDRESS;
     skernel = .;
+    
+    .boot : {
+        *(.text.boot)
+        *(.data.boot)
+    }
 
     stext = .;
     .text : {

@@ -26,7 +26,6 @@ mod error;
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
-mod mutex;
 #[macro_use]
 mod logging;
 mod arch;
@@ -134,6 +133,7 @@ fn wakeup_secondary_cpus(this_id: usize, host_dtb: usize) {
         if cpu_id == this_id {
             continue;
         }
+        // println!("try weak up cpu {}", cpu_id);
         cpu_start(cpu_id, arch_entry as _, host_dtb);
     }
 }
@@ -141,7 +141,7 @@ fn wakeup_secondary_cpus(this_id: usize, host_dtb: usize) {
 #[no_mangle]
 #[inline]
 pub extern "C" fn uart_puts_c() {
-    console_putchar(b'1');
+    console_putchar(b'D');
     // let mut i = 0;
     // while (i < 10) {
     //     console_putchar(b'1');
@@ -159,25 +159,14 @@ pub fn uart_puts(str: &str) {
         console_putchar(byte);
     }
 }
-fn mycas() {
-    let mut dst: u32 = 0;
-    unsafe { core::intrinsics::atomic_cxchg_acquire_relaxed(dst as *mut u32, 0, 1); }
-}
 
-
-fn test_lock() {
-    println!("lock test: start");
-    mycas();
-    println!("lock test: done");
-}
 fn rust_main(cpuid: usize, host_dtb: usize) {
-    // uart_puts_1();
-    test_lock();
-    uart_puts("hello hvisor");
-    // uart_puts_1();
     arch::trap::install_trap_vector();
     let mut is_primary = false;
-    // println!("Hello, HVISOR!");
+    extern "C" {
+        fn skernel();
+    }
+    println!("Hello, HVISOR at {:#x?}!", skernel as usize);
     if MASTER_CPU.load(Ordering::Acquire) == -1 {
         MASTER_CPU.store(cpuid as i32, Ordering::Release);
         is_primary = true;
@@ -186,9 +175,7 @@ fn rust_main(cpuid: usize, host_dtb: usize) {
         memory::heap::init();
         memory::heap::test();
     }
-    println!("3");
-    let cpu = PerCpu::new(cpuid);
-    println!("4");
+    let cpu: &mut PerCpu = PerCpu::new(cpuid);
     println!(
         "Booting CPU {}: {:p} arch:{:p}, DTB: {:#x}",
         cpu.id, cpu as *const _, &cpu.arch_cpu as *const _, host_dtb

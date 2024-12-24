@@ -14,6 +14,7 @@ use super::{
 };
 
 pub fn cpu_start(cpuid: usize, start_addr: usize, opaque: usize) {
+    println!("cpu id {}, start addr {:p}, opaque {:#x}", cpuid, start_addr as * const u64, opaque);
     psci::cpu_on(cpuid as u64 | 0x80000000, start_addr as _, opaque as _).unwrap_or_else(|err| {
         if let psci::error::Error::AlreadyOn = err {
         } else {
