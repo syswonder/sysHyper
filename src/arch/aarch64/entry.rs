@@ -14,6 +14,7 @@ pub unsafe extern "C" fn arch_entry() -> i32 {
             // x0 = dtbaddr
             mov x18, x0
             mrs x17, mpidr_el1
+            lsr x17, x17, #0x8
             and x17, x17, #0xff
             adrp x2, __core_end          // x2 = &__core_end
             mov x3, {per_cpu_size}      // x3 = per_cpu_size

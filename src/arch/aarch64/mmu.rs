@@ -170,11 +170,11 @@ pub extern "C" fn boot_pt_init(l0_pt: &mut PageTables, l1_pt: &mut PageTables) {
                 PTEType::Block,
             );
         }
-        // l0_pt.entry[4] = PTEDescriptor::new(0x100000000, MemoryType::Normal, PTEType::Block);
-        // l0_pt.entry[5] = PTEDescriptor::new(0x140000000, MemoryType::Normal, PTEType::Block);
-        // l0_pt.entry[6] = PTEDescriptor::new(0x180000000, MemoryType::Normal, PTEType::Block);
-        // l0_pt.entry[7] = PTEDescriptor::new(0x1c0000000, MemoryType::Normal, PTEType::Block);
-        for i in 4..ENTRY_PER_PAGE {
+        l0_pt.entry[4] = PTEDescriptor::new(0x100000000, MemoryType::Normal, PTEType::Block);
+        l0_pt.entry[5] = PTEDescriptor::new(0x140000000, MemoryType::Normal, PTEType::Block);
+        l0_pt.entry[6] = PTEDescriptor::new(0x180000000, MemoryType::Normal, PTEType::Block);
+        l0_pt.entry[7] = PTEDescriptor::new(0x1c0000000, MemoryType::Normal, PTEType::Block);
+        for i in 8..ENTRY_PER_PAGE {
             l0_pt.entry[i] = PTEDescriptor::invalid();
         }
     }

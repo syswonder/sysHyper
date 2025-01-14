@@ -70,6 +70,7 @@ impl ArchCpu {
     }
 
     fn activate_vmm(&self) {
+        info!("get parange {}", get_parange());
         VTCR_EL2.write(
             VTCR_EL2::TG0::Granule4KB
                 + VTCR_EL2::PS.val(get_parange() as _)
@@ -149,17 +150,19 @@ impl ArchCpu {
     }
 
     pub fn run(&mut self) -> ! {
+        info!("run cpu_id {} {}", this_cpu_id(), self.cpuid);
         assert!(this_cpu_id() == self.cpuid);
         this_cpu_data().activate_gpm();
         self.reset(this_cpu_data().cpu_on_entry, this_cpu_data().dtb_ipa);
         self.power_on = true;
-        info!("cpu {} started", self.cpuid);
+        info!("cpu {} started at {:#x?}", self.cpuid, this_cpu_data().cpu_on_entry);
         unsafe {
             vmreturn(self.guest_reg() as *mut _ as usize);
         }
     }
 
     pub fn idle(&mut self) -> ! {
+        info!("idle cpu_id {} {} mpidr {:#x?}", this_cpu_id(), self.cpuid, MPIDR_EL1.get());
         assert!(this_cpu_id() == self.cpuid);
         let cpu_data = this_cpu_data();
         let _lock = cpu_data.ctrl_lock.lock();
@@ -194,7 +197,7 @@ impl ArchCpu {
 }
 
 pub fn mpidr_to_cpuid(mpidr: u64) -> u64 {
-    mpidr & 0xff00ffffff
+    (mpidr >> 8) & 0xff
 }
 
 pub fn this_cpu_id() -> usize {
