@@ -15,6 +15,7 @@
 #![feature(naked_functions)] //  surpport naked function
 #![feature(core_panic)]
 #![feature(core_intrinsics)]
+
 // 支持内联汇编
 // #![deny(warnings, missing_docs)] // 将warnings作为error
 #[macro_use]
@@ -46,7 +47,7 @@ use crate::consts::MAX_CPU_NUM;
 use crate::device::uart::console_putchar;
 use arch::{cpu::cpu_start, entry::arch_entry};
 use config::root_zone_config;
-use core::sync::atomic::{AtomicI32, AtomicU32, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicI32, AtomicU32, Ordering};
 use percpu::PerCpu;
 use spin::lock_api::Mutex;
 use zone::zone_create;
@@ -88,12 +89,12 @@ fn primary_init_early() {
         fn __core_end();
     }
     logging::init();
-    info!("Logging is enabled.");
-    info!("__core_end = {:#x?}", __core_end as usize);
+    println!("Logging is enabled.");
+    println!("__core_end = {:#x?}", __core_end as usize);
     // let system_config = HvSystemConfig::get();
     // let revision = system_config.revision;
-    info!("Hypervisor initialization in progress...");
-    info!(
+    println!("Hypervisor initialization in progress...");
+    println!(
         "build_mode: {}, log_level: {}, arch: {}, stats: {}",
         option_env!("MODE").unwrap_or(""),
         option_env!("LOG").unwrap_or(""),
@@ -170,6 +171,7 @@ fn rust_main(cpuid: usize, host_dtb: usize) {
     if MASTER_CPU.load(Ordering::Acquire) == -1 {
         MASTER_CPU.store(cpuid as i32, Ordering::Release);
         is_primary = true;
+
         #[cfg(target_arch = "riscv64")]
         clear_bss();
         memory::heap::init();

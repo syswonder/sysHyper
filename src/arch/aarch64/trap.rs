@@ -5,13 +5,7 @@ use crate::{
     arch::{
         cpu::mpidr_to_cpuid,
         sysreg::{read_sysreg, smc_call, write_sysreg},
-    },
-    device::irqchip::gicv3::gicv3_handle_irq_el1,
-    event::{send_event, IPI_EVENT_SHUTDOWN, IPI_EVENT_WAKEUP},
-    hypercall::{HyperCall, SGI_IPI_ID},
-    memory::{mmio_handle_access, MMIOAccess},
-    percpu::{get_cpu_data, this_cpu_data, this_zone, PerCpu},
-    zone::{is_this_root_zone, remove_zone},
+    }, device::{irqchip::gicv3::gicv3_handle_irq_el1, uart::console_putchar}, event::{send_event, IPI_EVENT_SHUTDOWN, IPI_EVENT_WAKEUP}, hypercall::{HyperCall, SGI_IPI_ID}, memory::{mmio_handle_access, MMIOAccess}, percpu::{get_cpu_data, this_cpu_data, this_zone, PerCpu}, uart_puts, uart_puts_c, zone::{is_this_root_zone, remove_zone}
 };
 
 use super::cpu::GeneralRegisters;
@@ -138,31 +132,66 @@ fn arch_handle_trap_el2(_regs: &mut GeneralRegisters) {
     let elr = ELR_EL2.get();
     let esr = ESR_EL2.get();
     let far = FAR_EL2.get();
+
     match ESR_EL2.read_as_enum(ESR_EL2::EC) {
         Some(ESR_EL2::EC::Value::HVC64) => {
-            println!("EL2 Exception: HVC64 call, ELR_EL2: {:#x?}", ELR_EL2.get());
+            // println!("EL2 Exception: HVC64 call, ELR_EL2: {:#x?}", ELR_EL2.get());
+            uart_puts("HVC64");
+            uart_puts("ELR_EL2");
+            uart_puts(&format!("{:016X}", elr));
         }
         Some(ESR_EL2::EC::Value::SMC64) => {
-            println!("EL2 Exception: SMC64 call, ELR_EL2: {:#x?}", ELR_EL2.get());
+            // println!("EL2 Exception: SMC64 call, ELR_EL2: {:#x?}", ELR_EL2.get());
+            uart_puts("SMC64");
+            uart_puts("ELR_EL2");
+            uart_puts(&format!("{:016X}", elr));
         }
         Some(ESR_EL2::EC::Value::DataAbortCurrentEL) => {
-            println!(
-                "EL2 Exception: Data Abort, ELR_EL2: {:#x?}, ESR_EL2: {:#x?}",
-                elr, esr
-            );
+            uart_puts("Data Abort");
+            uart_puts("ELR_EL2");
+            try_print(elr);
+            uart_puts("ESR_EL2");
+            try_print(esr);
+            // println!(
+            //     "EL2 Exception: Data Abort, ELR_EL2: {:#x?}, ESR_EL2: {:#x?}",
+            //     elr, esr
+            // );
         }
         Some(ESR_EL2::EC::Value::InstrAbortCurrentEL) => {
-            println!(
-                "EL2 Exception: Instruction Abort, ELR_EL2: {:#x?}, FAR_EL2: {:#x?}",
-                ELR_EL2.get(),
-                FAR_EL2.get()
-            );
+            // println!(
+            //     "EL2 Exception: Instruction Abort, ELR_EL2: {:#x?}, FAR_EL2: {:#x?}",
+            //     ELR_EL2.get(),
+            //     FAR_EL2.get()
+            // );
+            uart_puts("Instruction Abort");
+            uart_puts("ELR_EL2");
+            try_print(elr);
+            uart_puts("FAR_EL2");
+            uart_puts(&format!("{:016X}", far));
         }
         _ => {
-            println!("Unhandled EL2 Exception: EC={:#x?}", 1);
+            try_print(elr);
+            // println!("Unhandled EL2 Exception: EC={:#x?}", 1);
+            // uart_puts("Unhandled EL2 Exception");
+            // uart_puts("ELR_EL2");
+            // uart_puts(&format!("{:016X}", elr));
+            // uart_puts("ESR_EL2");
+            // uart_puts(&format!("{}", esr));
         }
     }
     loop {}
+}
+
+fn try_print(x: u64) {
+    if x >= 16 {
+        try_print(x/16);
+    }
+    let m = x % 16;
+    if m<=9 {
+        console_putchar(b'0' + m as u8);
+    } else {
+        console_putchar(b'a' + m as u8 - 10);
+    }
 }
 
 fn handle_iabt(_regs: &mut GeneralRegisters) {

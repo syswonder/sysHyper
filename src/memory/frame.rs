@@ -231,7 +231,7 @@ pub fn init() {
     let mem_pool_size = mem_pool_end - mem_pool_start;
     FRAME_ALLOCATOR.lock().init(mem_pool_start, mem_pool_size);
 
-    info!(
+    println!(
         "Frame allocator initialization finished: {:#x?}",
         mem_pool_start..mem_pool_end
     );
@@ -251,5 +251,5 @@ pub fn test() {
         v.push(frame);
     }
     drop(v);
-    info!("frame_allocator_test passed!");
+    println!("frame_allocator_test passed!");
 }

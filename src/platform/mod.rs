@@ -35,6 +35,12 @@ pub mod rk3568_aarch64;
 #[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
 use rk3568_aarch64::*;
 
+#[cfg(all(feature = "platform_rk3588", target_arch = "aarch64"))]
+pub mod rk3588_aarch64;
+
+#[cfg(all(feature = "platform_rk3588", target_arch = "aarch64"))]
+use rk3588_aarch64::*;
+
 pub fn platform_root_zone_config() -> HvZoneConfig {
     // fill zero for memory regions and interrupts
 

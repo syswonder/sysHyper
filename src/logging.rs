@@ -5,7 +5,7 @@ use log::{self, Level, LevelFilter, Log, Metadata, Record};
 use alloc::string::String;
 use spin::Mutex;
 
-use crate::device::uart;
+use crate::{device::uart, uart_puts_1, uart_puts_c};
 
 // static PRINT_LOCK: Hspinlock<()> = Hspinlock::new(());
 static PRINT_LOCK: Mutex<()> = Mutex::new(());

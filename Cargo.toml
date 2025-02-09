@@ -35,6 +35,7 @@ loongArch64 = "0.2.4"
 platform_qemu = []
 platform_imx8mp = []
 platform_rk3568 = []
+platform_rk3588 = []
 
 [profile.dev]
 panic = "abort"

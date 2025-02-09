@@ -148,11 +148,12 @@ fn gicv3_clear_pending_irqs() {
 
 static TIMER_INTERRUPT_COUNTER: AtomicU64 = AtomicU64::new(0);
 // how often to print timer interrupt counter
-const TIMER_INTERRUPT_PRINT_TIMES: u64 = 50;
+const TIMER_INTERRUPT_PRINT_INTERVAL: u64 = 50;
 
 pub fn gicv3_handle_irq_el1() {
     while let Some(irq_id) = pending_irq() {
         if irq_id < 8 {
+            debug!("sgi get {}, try to handle...", irq_id);
             deactivate_irq(irq_id);
             let mut ipi_handled = false;
             if irq_id == SGI_IPI_ID as _ {
@@ -169,7 +170,7 @@ pub fn gicv3_handle_irq_el1() {
             if irq_id == 27 {
                 // virtual timer interrupt
                 TIMER_INTERRUPT_COUNTER.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
-                if TIMER_INTERRUPT_COUNTER.load(core::sync::atomic::Ordering::SeqCst) % TIMER_INTERRUPT_PRINT_TIMES == 0 {
+                if TIMER_INTERRUPT_COUNTER.load(core::sync::atomic::Ordering::SeqCst) % TIMER_INTERRUPT_PRINT_INTERVAL == 0 {
                     debug!("Virtual timer interrupt, counter = {}", TIMER_INTERRUPT_COUNTER.load(core::sync::atomic::Ordering::SeqCst));
                 }
             } else if irq_id == 25 {
@@ -422,8 +423,7 @@ pub fn disable_irqs() {
 }
 
 pub fn primary_init_early() {
-    let root_config = root_zone_config();
-    
+    let root_config: &crate::config::HvZoneConfig = root_zone_config();
     GIC.call_once(|| Gic {
         gicd_base: root_config.arch_config.gicd_base,
         gicr_base: root_config.arch_config.gicr_base,
@@ -432,7 +432,7 @@ pub fn primary_init_early() {
     });
 
     PENDING_VIRQS.call_once(|| PendingIrqs::new(MAX_CPU_NUM));
-    debug!("gic = {:#x?}", GIC.get().unwrap());
+    println!("gic = {:#x?}", GIC.get().unwrap());
 }
 
 pub fn primary_init_late() {

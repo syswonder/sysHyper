@@ -45,10 +45,9 @@ pub fn enable_ipi() {
         let gicr_igroupr0 = (base + GICR_IGROUPR) as *mut u32;
         gicr_igroupr0.write_volatile(gicr_igroupr0.read_volatile() | (1 << SGI_IPI_ID));
 
-        let gicr_isenabler0 = (base + GICR_ISENABLER) as *mut u32;
-        gicr_isenabler0.write_volatile(1 << SGI_IPI_ID | 1 << MAINTENACE_INTERRUPT);
-        trace!("gicr_isenabler0: {}", gicr_isenabler0.read_volatile());
+        let gicr_isenabler0: *mut u32 = (base + GICR_ISENABLER) as *mut u32;
         let gicr_ipriorityr0 = (base + GICR_IPRIORITYR) as *mut u32;
+
         for irq_id in [SGI_IPI_ID, MAINTENACE_INTERRUPT] {
             let reg = irq_id / 4;
             let offset = irq_id % 4 * 8;
@@ -57,6 +56,8 @@ pub fn enable_ipi() {
             let prio = p.read_volatile();
 
             p.write_volatile((prio & !mask) | (0x01 << offset));
+
+            gicr_isenabler0.write_volatile(1 << irq_id);
         }
     }
 }

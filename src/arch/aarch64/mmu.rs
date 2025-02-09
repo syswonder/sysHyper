@@ -143,7 +143,7 @@ pub extern "C" fn boot_pt_init(l0_pt: &mut PageTables, l1_pt: &mut PageTables) {
         memset(l1_pt_entry as *mut u8, 0, PAGE_SIZE);
     }
 
-    #[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
+    #[cfg(any(feature = "platform_rk3568", feature = "platform_rk3588"))]
     {
         // EMMC fe310000    0xfe200000-0xfe400000
         // GIC  fd400000    0xfd400000-0xfd600000

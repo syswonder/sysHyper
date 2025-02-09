@@ -1,10 +1,7 @@
 use tock_registers::interfaces::*;
-use tock_registers::register_bitfields;
 use tock_registers::register_structs;
 use tock_registers::registers::*;
-use spin::Mutex;
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use core::ptr;
 
 
 /// Register struct representing the UART registers.
@@ -84,9 +81,14 @@ impl Uart16550 {
 //     unsafe { UART.lock().getchar() }
 // }
 
+#[cfg(feature = "platform_rk3568")]
+pub const UART_BASE_PHYS: PhysAddr = 0xfe660000;
+
+#[cfg(feature = "platform_rk3588")]
+pub const UART_BASE_PHYS: PhysAddr = 0xfeb50000;
+
 static mut UART: Uart16550 = {
-    Uart16550::new(0xfe660000)
-    // Mutex::new(uart)
+    Uart16550::new(UART_BASE_PHYS)
 };
 
 #[inline]

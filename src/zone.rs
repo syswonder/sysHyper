@@ -210,7 +210,7 @@ pub fn zone_create(config: &HvZoneConfig) -> HvResult<Arc<RwLock<Zone>>> {
             dtb_ipa = region.virtual_start + config.dtb_load_paddr - region.physical_start;
         }
     }
-    info!("zone cpu_set: {:#b}", zone.cpu_set.bitmap);
+    println!("zone cpu_set: {:#b}", zone.cpu_set.bitmap);
     let cpu_set = zone.cpu_set;
 
     let new_zone_pointer = Arc::new(RwLock::new(zone));

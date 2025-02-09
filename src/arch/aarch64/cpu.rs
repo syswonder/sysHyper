@@ -190,7 +190,7 @@ impl ArchCpu {
         self.reset(0, this_cpu_data().dtb_ipa);
         unsafe {
             PARKING_MEMORY_SET.get().unwrap().activate();
-            info!("cpu {} started from parking", self.cpuid);
+            info!("cpu {} -> idle state...", self.cpuid);
             vmreturn(self.guest_reg() as *mut _ as usize);
         }
     }

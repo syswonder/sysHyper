@@ -19,14 +19,8 @@ mod ns16440a;
 #[cfg(target_arch = "loongarch64")]
 pub use ns16440a::{console_getchar, console_putchar};
 
-// #[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
-// mod rk3568_uart;
-
-// #[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
-// pub use rk3568_uart::{console_getchar, console_putchar};
-
-#[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
+#[cfg(any(feature = "platform_rk3568", feature = "platform_rk3588"))]
 pub mod uart_16550;
 
-#[cfg(all(feature = "platform_rk3568", target_arch = "aarch64"))]
+#[cfg(any(feature = "platform_rk3568", feature = "platform_rk3588"))]
 pub use uart_16550::{console_getchar, console_putchar};
