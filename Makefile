@@ -1,11 +1,12 @@
 # Basic settings
-ARCH ?= aarch64
+ARCH ?= riscv64
 LOG ?= info
 STATS ?= off
 PORT ?= 2333
 MODE ?= debug
 OBJCOPY ?= rust-objcopy --binary-architecture=$(ARCH)
 KDIR ?= ../../linux
+IRQ ?= plic
 FEATURES ?= platform_zcu102,gicv2
 BOARD ?= zcu102
 
@@ -34,7 +35,7 @@ image_dir  := images/$(ARCH)
 
 # Build arguments
 build_args := 
-build_args += --features "$(FEATURES)" 
+build_args += --features "$(FEATURES)"
 build_args += --target $(RUSTC_TARGET)
 build_args += -Z build-std=core,alloc
 build_args += -Z build-std-features=compiler-builtins-mem
